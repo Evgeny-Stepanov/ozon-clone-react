@@ -1,0 +1,16 @@
+# Ignore folders with dependencies and builds
+node_modules
+dist
+dist-ssr
+.pnpm-store
+
+# Ignore technical files (if any)
+public/mockServiceWorker.js
+package-lock.json
+pnpm-lock.yaml
+
+# Ignore images and fonts
+**/*.png
+**/*.jpg
+**/*.svg
+**/*.woff2
