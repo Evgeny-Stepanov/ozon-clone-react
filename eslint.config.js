@@ -11,10 +11,16 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    // Global ignores (instead of globalIgnores)
-    ignores: ['dist', 'node_modules', 'generators/*', '**/*.config.js'],
+    // Global ignores
+    ignores: [
+      'dist',
+      'node_modules',
+      'generators/*',
+      '**/*.config.js',
+      'fetch-data.mjs',
+      'public/mockServiceWorker.js',
+    ],
   },
-  // Basic recommendations
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
@@ -23,7 +29,6 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      // Fixing compatibility issues with Flat Config for older plugins
       import: fixupPluginRules(importPlugin),
       'jsx-a11y': jsxA11y,
       'check-file': checkFile,
@@ -34,7 +39,6 @@ export default tseslint.config(
         ...globals.browser,
         ...globals.node,
       },
-      // It is important for import rules that TS understands the paths
       parserOptions: {
         project: ['./tsconfig.app.json', './tsconfig.node.json'],
         tsconfigRootDir: import.meta.dirname,
@@ -48,36 +52,63 @@ export default tseslint.config(
       },
     },
     rules: {
-      // Recommendations for React hooks
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
 
-      // --- IMPORT ORDER (from Bulletproof) ---
+      // --- RULE 1: RESTRICTED ROUTES (ZONES) ---
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './src/features/products',
+              from: './src/features',
+              except: ['./products'],
+            },
+            {
+              target: './src/features',
+              from: './src/app',
+            },
+            {
+              target: [
+                './src/components',
+                './src/hooks',
+                './src/types',
+                './src/utils',
+              ],
+              from: ['./src/features', './src/app'],
+            },
+          ],
+        },
+      ],
+
+      // --- RULE 2: ORDER OF IMPORTS ---
       'import/order': [
         'error',
         {
           groups: [
-            'builtin', // react, fs...
-            'external', // libraries from node_modules
-            'internal', // your aliases @/components...
-            'parent', // ../
-            'sibling', // ./
-            'index', // ./index
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
             'object',
           ],
           'newlines-between': 'always',
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-      'import/no-cycle': 'error', // Banning cycles
+
+      'import/no-cycle': 'error',
 
       // --- ACCESSIBILITY (A11y) ---
       ...jsxA11y.flatConfigs.recommended.rules,
 
-      // --- FILE STYLE (kebab-case) ---
+      // ---FILE STYLE (kebab-case) ---
       'check-file/filename-naming-convention': [
         'error',
         { '**/*.{ts,tsx}': 'KEBAB_CASE' },
@@ -88,13 +119,13 @@ export default tseslint.config(
         { 'src/**/!(__tests__)': 'KEBAB_CASE' },
       ],
 
-      // --- ADDITIONAL STRICKNESS ---
+      // --- STRICKNESS ---
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'react/prop-types': 'off', // In TS, props are type-checked.
+      'react/prop-types': 'off',
     },
   },
   eslintConfigPrettier,
